@@ -1,1 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pianificatore Sportivo</title>
+    <!-- Carica Tailwind CSS per uno stile moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Stili Personalizzati */
+        .session-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .session-table th, .session-table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+        .session-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        .session-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .session-table .break {
+            background-color: #fff3cd; /* Giallo chiaro per le pause */
+            color: #856404;
+        }
+        .session-table .break td {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+
+    <div class="container max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl">
+        <h1 class="text-4xl font-extrabold text-blue-600 text-center mb-8">Pianificatore Sportivo Giornaliero</h1>
+        <p class="text-center text-gray-500 mb-6">Organizza il tuo allenamento suddividendolo in blocchi con pause strategiche.</p>
+
+        <!-- Sezione Input Principale -->
+        <div id="input-group" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50 p-6 rounded-lg mb-8 shadow-inner">
+            <!-- Data -->
+            <div>
+                <label for="scheduleDate" class="block text-sm font-medium text-gray-700 mb-2">Data del Programma</label>
+                <input type="date" id="scheduleDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+            </div>
+            <!-- Ora di Inizio -->
+            <div>
+                <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">Ora di Inizio (es. 07:00)</label>
+                <input type="time" id="startTime" value="07:00" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+            </div>
+            <!-- Durata Totale Allenamento -->
+            <div>
+                <label for="totalDuration" class="block text-sm font-medium text-gray-700 mb-2">Durata Totale Allenamento (minuti)</label>
+                <input type="number" id="totalDuration" value="180" min="30" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+            </div>
+        </div>
+
+        <!-- Sezione Gestione Pause -->
+        <div class="bg-yellow-50 p-6 rounded-lg mb-8 border border-yellow-200">
+            <h2 class="text-2xl font-semibold text-yellow-700 mb-4">Gestione Pause <span class="text-base font-normal">(Le pause dividono l'allenamento in blocchi di uguale durata)</span></h2>
+            
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <div class="flex-grow">
+                    <label for="breakDescription" class="block text-sm font-medium text-gray-700 mb-2">Descrizione Pausa (es. Pranzo)</label>
+                    <input type="text" id="breakDescription" placeholder="Descrizione" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="w-full sm:w-1/3">
+                    <label for="breakDuration" class="block text-sm font-medium text-gray-700 mb-2">Durata Pausa (minuti)</label>
+                    <input type="number" id="breakDuration" value="60" min="5" placeholder="Minuti" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <button onclick="addBreak()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md self-end transition duration-200 mt-2 sm:mt-0">
+                    Aggiungi Pausa
+                </button>
+            </div>
+
+            <!-- Lista Pause Attuali -->
+            <div id="breakListContainer" class="mt-4">
+                <h3 class="text-lg font-medium text-gray-600 mb-2">Pause Aggiunte:</h3>
+                <ul id="currentBreaks" class="space-y-2">
+                    <!-- Le pause verranno inserite qui dal JS -->
+                    <li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa aggiunta. L'allenamento sarà un blocco unico.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Pulsante Calcola -->
+        <button onclick="calculateSchedule()" id="calculateButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition duration-300 transform hover:scale-[1.01]">
+            Calcola Programma
+        </button>
+
+        <!-- Sezione Risultati -->
+        <div id="results" class="mt-10 bg-gray-50 p-6 rounded-xl shadow-inner border-t-4 border-blue-500">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Risultati della Pianificazione</h2>
+            <p class="text-gray-500 italic">Inserisci i dati e calcola il programma per visualizzare qui la tabella dettagliata.</p>
+        </div>
+    </div>
+
+    <script>
+        // Variabili Globali
+        let breakList = [];
+        const APP_STORAGE_KEY = 'sportPlannerData';
+
+        // --- Utilità per il Tempo ---
+
+        /**
+         * Formatta un orario (es. 7:0) in HH:MM (es. 07:00).
+         * @param {number} hours - Ore.
+         * @param {number} minutes - Minuti.
+         * @returns {string} Orario formattato HH:MM.
+         */
+        function formatTime(hours, minutes) {
+            const h = String(hours).padStart(2, '0');
+            const m = String(minutes).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        /**
+         * Formatta una durata in minuti in ore e minuti (es. 120 -> 2h 0m).
+         * @param {number} totalMinutes - Durata totale in minuti.
+         * @returns {string} Durata formattata.
+         */
+        function formatMinutesToHours(totalMinutes) {
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            if (h === 0) return `${m}m`;
+            if (m === 0) return `${h}h`;
+            return `${h}h ${m}m`;
+        }
+        
+        // --- Gestione Stato (LocalStorage) ---
+
+        /**
+         * Salva l'elenco delle pause nel localStorage.
+         * Salva i dati relativi alla data selezionata.
+         */
+        function saveSchedule(date) {
+            try {
+                const totalDuration = document.getElementById('totalDuration').value;
+                const startTime = document.getElementById('startTime').value;
+                
+                // Recupera tutti i dati salvati
+                const allData = JSON.parse(localStorage.getItem(APP_STORAGE_KEY) || '{}');
+                
+                // Aggiorna i dati per la data corrente
+                allData[date] = {
+                    totalDuration: totalDuration,
+                    startTime: startTime,
+                    breaks: breakList
+                };
+
+                localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(allData));
+            } catch (error) {
+                console.error("Errore nel salvataggio dei dati:", error);
+            }
+        }
+
+        /**
+         * Carica i dati (durata, ora inizio, pause) per la data selezionata.
+         */
+        function loadSchedule() {
+            const date = document.getElementById('scheduleDate').value;
+            try {
+                const allData = JSON.parse(localStorage.getItem(APP_STORAGE_KEY) || '{}');
+                const data = allData[date];
+
+                if (data) {
+                    document.getElementById('totalDuration').value = data.totalDuration || 180;
+                    document.getElementById('startTime').value = data.startTime || '07:00';
+                    breakList = data.breaks || [];
+                } else {
+                    // Se non ci sono dati, resetta l'elenco delle pause e usa i valori di default
+                    breakList = [];
+                    // Aggiorna i valori predefiniti solo se l'utente non li ha modificati (controlla se sono stringhe vuote)
+                    if (!document.getElementById('totalDuration').value || document.getElementById('totalDuration').value === "") document.getElementById('totalDuration').value = 180;
+                    if (!document.getElementById('startTime').value || document.getElementById('startTime').value === "") document.getElementById('startTime').value = '07:00';
+                }
+                
+                renderBreaks();
+                calculateSchedule(); // Ricalcola con i nuovi dati
+            } catch (error) {
+                console.error("Errore nel caricamento dei dati:", error);
+                breakList = [];
+                renderBreaks();
+            }
+        }
+
+        // --- Gestione Interfaccia Pause ---
+
+        /**
+         * Aggiunge una nuova pausa all'elenco.
+         */
+        function addBreak() {
+            const descriptionInput = document.getElementById('breakDescription');
+            const durationInput = document.getElementById('breakDuration');
+            
+            const description = descriptionInput.value.trim() || 'Pausa Generica';
+            const duration = parseInt(durationInput.value, 10);
+
+            if (isNaN(duration) || duration < 5) {
+                // Sostituisco alert() con un messaggio nell'interfaccia
+                document.getElementById('results').innerHTML = '<p class="text-red-500 font-semibold">Attenzione: La durata della pausa deve essere di almeno 5 minuti.</p>';
+                return;
+            }
+
+            breakList.push({ description, duration });
+            descriptionInput.value = '';
+            durationInput.value = 60; // Reset della durata
+            
+            // Salva e aggiorna l'interfaccia e il programma
+            saveSchedule(document.getElementById('scheduleDate').value);
+            renderBreaks();
+            calculateSchedule();
+        }
+
+        /**
+         * Rimuove una pausa in base all'indice.
+         * @param {number} index - Indice della pausa da rimuovere.
+         */
+        function removeBreak(index) {
+            breakList.splice(index, 1);
+            
+            // Salva e aggiorna l'interfaccia e il programma
+            saveSchedule(document.getElementById('scheduleDate').value);
+            renderBreaks();
+            calculateSchedule();
+        }
+
+        /**
+         * Aggiorna la lista delle pause nell'interfaccia.
+         */
+        function renderBreaks() {
+            const container = document.getElementById('currentBreaks');
+            let html = '';
+            
+            if (breakList.length === 0) {
+                 html = '<li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa aggiunta. L\'allenamento sarà un blocco unico.</li>';
+            } else {
+                breakList.forEach((b, index) => {
+                    html += `
+                        <li class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-yellow-300">
+                            <span class="text-gray-800 font-medium">${b.description} (${formatMinutesToHours(b.duration)})</span>
+                            <button onclick="removeBreak(${index})" class="text-red-500 hover:text-red-700 transition duration-150" aria-label="Rimuovi Pausa">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.728-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </li>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // --- Logica di Calcolo Principale ---
+
+        function calculateSchedule() {
+            const totalDuration = parseInt(document.getElementById('totalDuration').value, 10);
+            const startTimeStr = document.getElementById('startTime').value;
+            const resultsDiv = document.getElementById('results');
+            
+            // Gestione errori di input
+            if (isNaN(totalDuration) || totalDuration <= 0 || !startTimeStr) {
+                resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Per favore, inserisci una durata totale valida e un orario di inizio.</p>';
+                return;
+            }
+
+            // Aggiorna e salva i dati correnti prima del calcolo
+            saveSchedule(document.getElementById('scheduleDate').value);
+
+            // 1. Parsing dell'orario di inizio
+            const [startHour, startMinute] = startTimeStr.split(':').map(Number);
+            let currentTimeMinutes = (startHour * 60) + startMinute;
+
+            const numBreaks = breakList.length;
+            
+            // Il training è diviso in N+1 blocchi (dove N è il numero di pause)
+            const numBlocks = numBreaks + 1;
+            
+            // Calcola la durata di un singolo blocco di allenamento
+            const blockDuration = Math.floor(totalDuration / numBlocks);
+            const remainingDuration = totalDuration % numBlocks; // Gestisce i minuti residui
+
+            let trainingBlocksDuration = Array(numBlocks).fill(blockDuration);
+            // Distribuisce i minuti residui sui primi blocchi
+            for (let i = 0; i < remainingDuration; i++) {
+                trainingBlocksDuration[i]++;
+            }
+
+            const schedule = [];
+            let currentBreakIndex = 0;
+            let finalActivityEnd = '';
+
+            // 2. Ciclo di pianificazione
+            for (let i = 0; i < numBlocks; i++) {
+                const currentBlockDuration = trainingBlocksDuration[i];
+                
+                // Calcola l'orario di inizio e fine del blocco di allenamento
+                const blockStartMinutes = currentTimeMinutes;
+                const blockEndMinutes = blockStartMinutes + currentBlockDuration;
+
+                const startHourBlock = Math.floor(blockStartMinutes / 60) % 24;
+                const startMinuteBlock = blockStartMinutes % 60;
+                const endHourBlock = Math.floor(blockEndMinutes / 60) % 24;
+                const endMinuteBlock = blockEndMinutes % 60;
+
+                schedule.push({
+                    type: `Allenamento Blocco ${i + 1}`,
+                    start: formatTime(startHourBlock, startMinuteBlock),
+                    end: formatTime(endHourBlock, endMinuteBlock),
+                    duration: currentBlockDuration
+                });
+
+                // Aggiorna l'orario corrente e l'orario di fine attività stimato
+                currentTimeMinutes = blockEndMinutes;
+                finalActivityEnd = formatTime(endHourBlock, endMinuteBlock);
+
+                // Inserisce la pausa DOPO il blocco, se ce n'è una
+                if (currentBreakIndex < numBreaks) {
+                    const breakItem = breakList[currentBreakIndex];
+                    const breakDuration = breakItem.duration;
+
+                    const breakStartMinutes = currentTimeMinutes;
+                    const breakEndMinutes = breakStartMinutes + breakDuration;
+
+                    const startHourBreak = Math.floor(breakStartMinutes / 60) % 24;
+                    const startMinuteBreak = breakStartMinutes % 60;
+                    const endHourBreak = Math.floor(breakEndMinutes / 60) % 24;
+                    const endMinuteBreak = breakEndMinutes % 60;
+
+                    schedule.push({
+                        type: `Pausa: ${breakItem.description}`,
+                        start: formatTime(startHourBreak, startMinuteBreak),
+                        end: formatTime(endHourBreak, endMinuteBreak),
+                        duration: breakDuration
+                    });
+
+                    // Aggiorna l'orario corrente e l'orario di fine attività stimato
+                    currentTimeMinutes = breakEndMinutes;
+                    finalActivityEnd = formatTime(endHourBreak, endMinuteBreak);
+                    currentBreakIndex++;
+                }
+            }
+
+            // 3. Renderizzazione dell'output
+            let htmlOutput = `
+                <div class="bg-blue-100 p-4 rounded-lg mb-4 shadow-md">
+                    <p class="text-lg font-bold text-blue-800">Durata Totale Allenamento: 🏋️ ${formatMinutesToHours(totalDuration)}</p>
+                    <p class="text-lg font-bold text-blue-800">Numero di Blocchi di Allenamento: 🧱 ${numBlocks}</p>
+                    <p class="text-lg font-bold text-red-500">Orario di Fine Attività Stimato: ⏰ **${finalActivityEnd}**</p>
+                </div>
+                
+                <h3 class="text-2xl font-semibold mt-6 mb-4 text-gray-700">Organizzazione Giornaliera Dettagliata</h3>
+                <table class="session-table shadow-lg rounded-lg overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Inizio</th>
+                            <th>Fine</th>
+                            <th>Durata</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            schedule.forEach(item => {
+                const isBreak = item.type.includes('Pausa');
+                const rowClass = isBreak ? 'break' : '';
+                
+                htmlOutput += `
+                    <tr class="${rowClass}">
+                        <td>${item.type}</td>
+                        <td>${item.start}</td>
+                        <td>${item.end}</td>
+                        <td>${formatMinutesToHours(item.duration)}</td>
+                    </tr>
+                `;
+            });
+
+            htmlOutput += `
+                    </tbody>
+                </table>
+            `;
+
+            resultsDiv.innerHTML = htmlOutput;
+        }
+        
+        // --- Inizializzazione ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+             // Imposta la data di default a oggi
+             const today = new Date().toISOString().split('T')[0];
+             const dateInput = document.getElementById('scheduleDate');
+             dateInput.value = today;
+             
+             // Listener per il cambiamento della data (per caricare i dati specifici del giorno)
+             dateInput.addEventListener('change', loadSchedule);
+
+             // Listener per i cambiamenti negli input principali
+             document.getElementById('startTime').addEventListener('change', calculateSchedule);
+             document.getElementById('totalDuration').addEventListener('change', calculateSchedule);
+             
+             // Carica i dati salvati per la data corrente (se esistono) e calcola
+             loadSchedule();
+        });
+
+    </script>
+</body>
+</html>
 
