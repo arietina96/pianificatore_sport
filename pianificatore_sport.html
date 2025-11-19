@@ -4,246 +4,623 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pianificatore Sportivo</title>
-    <!-- Carica Tailwind CSS per uno stile moderno e responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Stili Personalizzati */
+        /* NUOVI COLORI KAWAII E VARIABILI */
+        :root {
+            --color-rose-antico: #EAC9C6; /* Rosa Antico Muted */
+            --color-pastel-green: #E1F0E1; /* Verde Pastello Chiaro Mint */
+            --color-rose-accent: #D8A7A7; /* Rosa più scuro per titoli */
+            --color-text-dark: #6F4E4E; /* Testo Marrone/Rosa per morbidezza */
+        }
+        
+        /* SFONDO GLITTER/KAWAII E STILI */
+        body {
+            background-color: var(--color-pastel-green) !important;
+            background-image: 
+                radial-gradient(var(--color-rose-antico) 10%, transparent 10%),
+                repeating-linear-gradient(45deg, var(--color-pastel-green) 0, var(--color-pastel-green) 1px, transparent 1px, transparent 8px);
+            background-size: 15px 15px, 10px 10px;
+            color: var(--color-text-dark); 
+        }
+
+        /* Stili Personalizzati Tabella */
         .session-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
         .session-table th, .session-table td {
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--color-rose-antico); /* Bordo tabella in rosa */
             padding: 10px;
             text-align: left;
         }
         .session-table th {
-            background-color: #007bff;
-            color: white;
-            font-weight: 600;
+            background-color: var(--color-rose-antico);
+            color: var(--color-text-dark);
+            font-weight: 700;
         }
         .session-table tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #FFFAFA; 
         }
         .session-table .break {
-            background-color: #fff3cd; /* Giallo chiaro per le pause */
-            color: #856404;
+            background-color: #FEEAEA;
+            color: var(--color-text-dark);
         }
-        .session-table .break td {
-            font-style: italic;
+        .session-table .meal {
+            background-color: var(--color-pastel-green);
+            color: var(--color-text-dark);
+        }
+        .session-table .info {
+            background-color: #FFFFFF;
+            color: var(--color-text-dark);
+        }
+        .session-table .break td, .session-table .meal td {
+            font-style: normal;
+        }
+
+        /* Stili per la stampa */
+        @media print {
+            body { 
+                background: white !important; 
+                color: black !important;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            .container { 
+                box-shadow: none !important; 
+                border: none !important; 
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                background-color: white !important;
+            }
+            .session-table th, .session-table td {
+                border-color: #888 !important; 
+            }
+            .session-table th {
+                background-color: var(--color-rose-antico) !important;
+                color: var(--color-text-dark) !important;
+            }
+            .session-table .meal {
+                background-color: var(--color-pastel-green) !important;
+            }
+            .session-table .break {
+                background-color: #FEEAEA !important;
+            }
+            .bg-blue-100 { 
+                background-color: #FEEAEA !important;
+                border-color: var(--color-rose-antico) !important;
+            }
+            /* Nascondi tutti i pulsanti e gli elementi di input per la stampa */
+            button, input, label, .mb-6, .mb-8, .grid, .fixed, .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+<body class="min-h-screen p-4 sm:p-8 font-sans">
 
-    <div class="container max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-xl shadow-2xl">
-        <h1 class="text-4xl font-extrabold text-blue-600 text-center mb-8">Pianificatore Sportivo Giornaliero</h1>
-        <p class="text-center text-gray-500 mb-6">Organizza il tuo allenamento suddividendolo in blocchi con pause strategiche.</p>
+    <div class="container max-w-4xl mx-auto p-6 sm:p-10 rounded-xl shadow-2xl" 
+         style="background-color: #FFFAFA; border: 3px solid var(--color-rose-antico); box-shadow: 0 10px 15px -3px rgba(170, 130, 130, 0.3), 0 4px 6px -2px rgba(170, 130, 130, 0.15) !important;">
+         
+        <h1 class="text-4xl font-extrabold text-center mb-8" style="color: var(--color-rose-accent) !important;">Pianificatore Sportivo Giornaliero</h1>
+        <p class="text-center text-gray-500 mb-6">Organizza la tua giornata combinando allenamento, pause fisse (pasti) e pause attive.</p>
 
-        <!-- Sezione Input Principale -->
-        <div id="input-group" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50 p-6 rounded-lg mb-8 shadow-inner">
-            <!-- Data -->
-            <div>
+        <div id="input-group" class="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 rounded-lg mb-8 shadow-inner" 
+             style="background-color: #FEEAEA; border: 1px solid var(--color-rose-antico);">
+            <div class="md:col-span-1">
                 <label for="scheduleDate" class="block text-sm font-medium text-gray-700 mb-2">Data del Programma</label>
-                <input type="date" id="scheduleDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+                <input type="date" id="scheduleDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico transition duration-150" required>
             </div>
-            <!-- Ora di Inizio -->
-            <div>
-                <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">Ora di Inizio (es. 07:00)</label>
-                <input type="time" id="startTime" value="07:00" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+            
+            <div class="md:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Durata Totale Allenamento <span class="text-red-500">*</span></label>
+                <div class="flex gap-2">
+                    <input type="number" id="totalDurationHours" value="3" min="0" max="23" placeholder="Ore" class="w-1/2 p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico transition duration-150" required>
+                    <input type="number" id="totalDurationMinutes" value="0" min="0" max="59" placeholder="Minuti" class="w-1/2 p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico transition duration-150" required>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Tempo totale da distribuire.</p>
             </div>
-            <!-- Durata Totale Allenamento -->
-            <div>
-                <label for="totalDuration" class="block text-sm font-medium text-gray-700 mb-2">Durata Totale Allenamento (minuti)</label>
-                <input type="number" id="totalDuration" value="180" min="30" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" required>
+
+            <div class="md:col-span-1">
+                <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">Ora di Inizio (Opzionale)</label>
+                <input type="time" id="startTime" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico transition duration-150">
+                <p class="text-xs text-gray-500 mt-1">Lascia vuoto per distribuzione libera.</p>
+            </div>
+            
+            <div class="md:col-span-1">
+                <label for="endTime" class="block text-sm font-medium text-gray-700 mb-2">Ora di Fine (Opzionale)</label>
+                <input type="time" id="endTime" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico transition duration-150">
+                <p class="text-xs text-gray-500 mt-1">Opzione valida solo con l'Ora di Inizio.</p>
             </div>
         </div>
 
-        <!-- Sezione Gestione Pause -->
-        <div class="bg-yellow-50 p-6 rounded-lg mb-8 border border-yellow-200">
-            <h2 class="text-2xl font-semibold text-yellow-700 mb-4">Gestione Pause <span class="text-base font-normal">(Le pause dividono l'allenamento in blocchi di uguale durata)</span></h2>
+        <div class="p-6 rounded-lg mb-8 border" style="background-color: var(--color-pastel-green); border-color: var(--color-rose-antico);">
+            <h2 class="text-2xl font-semibold mb-4" style="color: var(--color-text-dark);">Pasti e Pause Fisse <span class="text-base font-normal">(Definisci Inizio e Fine)</span></h2>
             
-            <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                <div class="flex-grow">
-                    <label for="breakDescription" class="block text-sm font-medium text-gray-700 mb-2">Descrizione Pausa (es. Pranzo)</label>
-                    <input type="text" id="breakDescription" placeholder="Descrizione" class="w-full p-3 border border-gray-300 rounded-lg">
+            <div id="mealInputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label for="colazioneStart" class="block text-sm font-medium text-gray-700 mb-1">Colazione (Inizio)</label>
+                    <input type="time" id="colazioneStart" value="07:30" class="w-full p-2 border border-gray-300 rounded-lg">
                 </div>
-                <div class="w-full sm:w-1/3">
-                    <label for="breakDuration" class="block text-sm font-medium text-gray-700 mb-2">Durata Pausa (minuti)</label>
-                    <input type="number" id="breakDuration" value="60" min="5" placeholder="Minuti" class="w-full p-3 border border-gray-300 rounded-lg">
+                 <div>
+                    <label for="colazioneEnd" class="block text-sm font-medium text-gray-700 mb-1">Colazione (Fine)</label>
+                    <input type="time" id="colazioneEnd" value="08:00" class="w-full p-2 border border-gray-300 rounded-lg">
                 </div>
-                <button onclick="addBreak()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md self-end transition duration-200 mt-2 sm:mt-0">
-                    Aggiungi Pausa
+                <div>
+                    <label for="pranzoStart" class="block text-sm font-medium text-gray-700 mb-1">Pranzo (Inizio)</label>
+                    <input type="time" id="pranzoStart" value="13:00" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label for="pranzoEnd" class="block text-sm font-medium text-gray-700 mb-1">Pranzo (Fine)</label>
+                    <input type="time" id="pranzoEnd" value="14:00" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label for="merendaStart" class="block text-sm font-medium text-gray-700 mb-1">Merenda (Inizio)</label>
+                    <input type="time" id="merendaStart" value="16:00" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+                 <div>
+                    <label for="merendaEnd" class="block text-sm font-medium text-gray-700 mb-1">Merenda (Fine)</label>
+                    <input type="time" id="merendaEnd" value="16:15" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label for="cenaStart" class="block text-sm font-medium text-gray-700 mb-1">Cena (Inizio)</label>
+                    <input type="time" id="cenaStart" value="20:00" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label for="cenaEnd" class="block text-sm font-medium text-gray-700 mb-1">Cena (Fine)</label>
+                    <input type="time" id="cenaEnd" value="20:45" class="w-full p-2 border border-gray-300 rounded-lg">
+                </div>
+            </div>
+            <p class="text-xs mt-2" style="color: var(--color-text-dark);">Le pause fisse (pasti) vengono incluse automaticamente nel programma.</p>
+        </div>
+
+        <div class="p-6 rounded-lg mb-8 border" style="background-color: #FEEAEA; border-color: var(--color-rose-antico);">
+            <h2 class="text-2xl font-semibold mb-4" style="color: var(--color-text-dark);">Pause Attive Personalizzate <span class="text-base font-normal">(Riposo, Stretching, Idratazione)</span></h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4 items-end">
+                <div class="sm:col-span-1">
+                    <label for="breakDescription" class="block text-sm font-medium text-gray-700 mb-2">Descrizione</label>
+                    <input type="text" id="breakDescription" placeholder="Es. Stretching" class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div class="sm:col-span-1">
+                    <label for="breakStartTime" class="block text-sm font-medium text-gray-700 mb-2">Ora di Inizio Pausa</label>
+                    <input type="time" id="breakStartTime" value="10:00" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-rose-antico focus:border-rose-antico">
+                </div>
+
+                <div class="sm:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Durata (Minuti)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="breakDurationHours" value="0" min="0" max="23" placeholder="Ore" class="w-1/2 p-3 border border-gray-300 rounded-lg">
+                        <input type="number" id="breakDurationMinutes" value="30" min="0" max="59" placeholder="Minuti" class="w-1/2 p-3 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                
+                <button onclick="addBreak()" class="font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 sm:col-span-1"
+                        style="background-color: var(--color-rose-accent); color: white; border: 2px solid var(--color-text-dark);">
+                    Aggiungi Pausa Attiva
                 </button>
             </div>
 
-            <!-- Lista Pause Attuali -->
             <div id="breakListContainer" class="mt-4">
-                <h3 class="text-lg font-medium text-gray-600 mb-2">Pause Aggiunte:</h3>
+                <h3 class="text-lg font-medium text-gray-600 mb-2">Pause Attive Aggiunte:</h3>
                 <ul id="currentBreaks" class="space-y-2">
-                    <!-- Le pause verranno inserite qui dal JS -->
-                    <li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa aggiunta. L'allenamento sarà un blocco unico.</li>
+                    <li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa attiva aggiunta.</li>
                 </ul>
+                <p class="text-xs mt-2" style="color: var(--color-text-dark);">Le pause devono essere inserite in ordine cronologico.</p>
             </div>
         </div>
 
-        <!-- Pulsante Calcola -->
-        <button onclick="calculateSchedule()" id="calculateButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition duration-300 transform hover:scale-[1.01]">
+        <div class="flex justify-between gap-4 mb-4">
+            <button onclick="saveSchedule();" class="w-1/2 font-bold py-3 rounded-xl shadow-md transition duration-300 transform hover:scale-[1.01]"
+                style="background-color: var(--color-pastel-green); color: var(--color-text-dark); border: 2px solid var(--color-rose-accent);">
+                💾 Salva su Cloud
+            </button>
+            <button onclick="loadSchedule();" class="w-1/2 font-bold py-3 rounded-xl shadow-md transition duration-300 transform hover:scale-[1.01]"
+                style="background-color: var(--color-rose-antico); color: var(--color-text-dark); border: 2px solid var(--color-rose-accent);">
+                🔄 Carica i Dati del Giorno
+            </button>
+        </div>
+
+        <button onclick="calculateSchedule()" id="calculateButton" class="w-full font-bold py-4 rounded-xl text-xl shadow-lg transition duration-300 transform hover:scale-[1.01]"
+                 style="background-color: var(--color-rose-accent); color: white;">
             Calcola Programma
         </button>
 
-        <!-- Sezione Risultati -->
-        <div id="results" class="mt-10 bg-gray-50 p-6 rounded-xl shadow-inner border-t-4 border-blue-500">
+        <div id="results" class="mt-10 p-6 rounded-xl shadow-inner border-t-4" 
+             style="background-color: #FFFAFA; border-color: var(--color-rose-antico) !important;">
             <h2 class="text-3xl font-bold text-gray-800 mb-4">Risultati della Pianificazione</h2>
             <p class="text-gray-500 italic">Inserisci i dati e calcola il programma per visualizzare qui la tabella dettagliata.</p>
         </div>
+        
+        <div id="action-buttons" class="mt-6 flex flex-col sm:flex-row justify-center gap-4 hidden">
+            
+            <button onclick="printSchedule()" id="printButton" class="flex items-center justify-center font-bold py-3 px-6 rounded-xl shadow-md transition duration-300"
+                    style="background-color: var(--color-pastel-green); color: var(--color-text-dark); border: 2px solid var(--color-rose-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 4v3h9V4a1 1 0 00-1-1H6a1 1 0 00-1 1zm0 7h9v5a2 2 0 01-2 2H7a2 2 0 01-2-2v-5zM2 7h16a1 1 0 011 1v7a3 3 0 01-3 3H4a3 3 0 01-3-3V8a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Stampa o Salva PDF
+            </button>
+
+            <button onclick="shareOnWhatsApp()" id="whatsappButton" class="flex items-center justify-center font-bold py-3 px-6 rounded-xl shadow-md transition duration-300"
+                    style="background-color: var(--color-rose-antico); color: white;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M15 8a3 3 0 10-2.977-2.67l-3.222 1.61A3 3 0 105 11a3 3 0 004.977 2.67l3.222-1.61A3 3 0 1015 8z" />
+                </svg>
+                Condividi (Testo + Istruzioni Screenshot)
+            </button>
+        </div>
+        
+        <div id="messageBox" class="fixed bottom-4 right-4 z-50"></div>
     </div>
 
     <script>
-        // Variabili Globali
-        let breakList = [];
-        const APP_STORAGE_KEY = 'sportPlannerData';
+        
+        // --- 1. CONFIGURAZIONE JSONBIN.io ---
+        let breakList = []; 
+        const MEAL_NAMES = ['colazione', 'pranzo', 'merenda', 'cena'];
+
+        // !!! MASTER KEY e BIN ID forniti dall'utente !!!
+        const MASTER_KEY = "$2a$10$/oqt/konWBpXfYJhVx2EHONSYiQZCSS8PCD7IqU3yPAkckNuE8lP2"; 
+        const BIN_ID = "6917b563d0ea881f40e8f68b";         
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`; 
+        
+        // --- Funzioni di Utilità UI (Gestione Messaggi) ---
+        function showMessage(message, type = 'warning', duration = 4000) {
+            const box = document.getElementById('messageBox');
+            if (!box) return; 
+
+            let bgColor = 'bg-yellow-500';
+            if (type === 'error') bgColor = 'bg-red-500';
+            if (type === 'success') bgColor = 'bg-green-500';
+            if (type === 'info') bgColor = 'bg-blue-500';
+
+            const messageHtml = `<div class="${bgColor} text-white p-4 rounded-lg shadow-xl mb-3 opacity-0 transition-opacity duration-300 transform translate-y-2"
+                     role="alert" style="min-width: 250px;">
+                    ${message}
+                </div>`;
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = messageHtml;
+            
+            const messageElement = tempDiv.querySelector('div'); 
+            if (!messageElement) return;
+
+            box.appendChild(messageElement);
+
+            setTimeout(() => {
+                messageElement.style.opacity = '1'; 
+                messageElement.style.transform = 'translateY(0)';
+            }, 10);
+
+            setTimeout(() => {
+                messageElement.style.opacity = '0';
+                messageElement.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    if (box.contains(messageElement)) {
+                       box.removeChild(messageElement);
+                    }
+                }, 300);
+            }, duration);
+        }
 
         // --- Utilità per il Tempo ---
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [h, m] = timeStr.split(':').map(Number);
+            return (h * 60) + m;
+        }
 
-        /**
-         * Formatta un orario (es. 7:0) in HH:MM (es. 07:00).
-         * @param {number} hours - Ore.
-         * @param {number} minutes - Minuti.
-         * @returns {string} Orario formattato HH:MM.
-         */
-        function formatTime(hours, minutes) {
+        function minutesToTime(totalMinutes) {
+            const minutesInDay = 24 * 60;
+            const correctedMinutes = totalMinutes % minutesInDay;
+            
+            const hours = Math.floor(correctedMinutes / 60);
+            const minutes = correctedMinutes % 60;
+            
             const h = String(hours).padStart(2, '0');
             const m = String(minutes).padStart(2, '0');
             return `${h}:${m}`;
         }
 
-        /**
-         * Formatta una durata in minuti in ore e minuti (es. 120 -> 2h 0m).
-         * @param {number} totalMinutes - Durata totale in minuti.
-         * @returns {string} Durata formattata.
-         */
         function formatMinutesToHours(totalMinutes) {
+            if (totalMinutes <= 0) return "0 minuti";
+            
             const h = Math.floor(totalMinutes / 60);
             const m = totalMinutes % 60;
-            if (h === 0) return `${m}m`;
-            if (m === 0) return `${h}h`;
-            return `${h}h ${m}m`;
+            let parts = [];
+
+            if (h > 0) {
+                parts.push(`${h} ${h === 1 ? 'ora' : 'ore'}`);
+            }
+
+            if (m > 0) {
+                parts.push(`${m} ${m === 1 ? 'minuto' : 'minuti'}`);
+            }
+            
+            if (parts.length === 2) {
+                return parts.join(' e ');
+            }
+            return parts[0] || "0 minuti";
         }
         
-        // --- Gestione Stato (LocalStorage) ---
+        // --- 2. Gestione Stato Cloud (JSONBin.io) ---
 
         /**
-         * Salva l'elenco delle pause nel localStorage.
-         * Salva i dati relativi alla data selezionata.
+         * Raccoglie tutti i dati di input ATTUALI, ESCLUSA la data.
          */
-        function saveSchedule(date) {
-            try {
-                const totalDuration = document.getElementById('totalDuration').value;
-                const startTime = document.getElementById('startTime').value;
-                
-                // Recupera tutti i dati salvati
-                const allData = JSON.parse(localStorage.getItem(APP_STORAGE_KEY) || '{}');
-                
-                // Aggiorna i dati per la data corrente
-                allData[date] = {
-                    totalDuration: totalDuration,
-                    startTime: startTime,
-                    breaks: breakList
-                };
+        function collectCurrentScheduleData() {
+            const totalDurationHours = document.getElementById('totalDurationHours').value || 0;
+            const totalDurationMinutes = document.getElementById('totalDurationMinutes').value || 0;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            const mealsData = {};
+            MEAL_NAMES.forEach(meal => {
+                const startElement = document.getElementById(`${meal}Start`);
+                const endElement = document.getElementById(`${meal}End`);
+                if (startElement && endElement) {
+                    mealsData[meal] = {
+                        start: startElement.value,
+                        end: endElement.value
+                    };
+                }
+            });
+            
+            // Ordina le pause attive per orario di inizio prima di salvare
+            breakList.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
-                localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(allData));
+            return {
+                totalDurationHours,
+                totalDurationMinutes,
+                startTime,
+                endTime,
+                activeBreaks: breakList,
+                fixedBreaks: mealsData
+            };
+        }
+        
+        /**
+         * Funzione Helper: Scarica tutti i dati salvati dal BIN (tutte le date).
+         */
+        async function fetchAllSchedules() {
+            try {
+                if (MASTER_KEY === "INSERISCI_QUI_LA_NUOVA_MASTER_KEY") {
+                    return {};
+                }
+                
+                const response = await fetch(JSONBIN_URL + "/latest", {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': MASTER_KEY 
+                    }
+                });
+
+                if (response.status === 404 || response.status === 400 || response.status === 204) {
+                    // 404/400/204 significa che il bin è vuoto o non esiste. OK.
+                    return {};
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Risposta non OK (${response.status}) durante il recupero. BIN o Chiave errata.`);
+                }
+                
+                const jsonResponse = await response.json();
+                // Il record è l'oggetto che contiene tutti i giorni.
+                return jsonResponse.record || {}; 
+                
             } catch (error) {
-                console.error("Errore nel salvataggio dei dati:", error);
+                showMessage(`Errore nel recupero dati Cloud: ${error.message}`, 'error', 7000);
+                console.error("Errore fetchAllSchedules:", error);
+                return {};
+            }
+        }
+
+
+        /**
+         * Salva i dati della data corrente su JSONBin.io (mantenendo i dati degli altri giorni).
+         */
+        async function saveSchedule() {
+            const date = document.getElementById('scheduleDate').value;
+            if (!date) {
+                 showMessage("Seleziona una data per salvare il programma.", 'error');
+                 return;
+            }
+
+            try {
+                if (MASTER_KEY === "INSERISCI_QUI_LA_NUOVA_MASTER_KEY") {
+                     showMessage("ERRORE: Devi prima inserire la tua Master Key nel codice!", 'error');
+                     return;
+                }
+                
+                // 1. Recupera tutti i salvataggi esistenti
+                const allSchedules = await fetchAllSchedules();
+                
+                // 2. Raccoglie i dati del giorno corrente
+                const currentDayData = collectCurrentScheduleData();
+
+                // 3. Aggiorna l'oggetto generale con i dati del giorno selezionato
+                allSchedules[date] = currentDayData;
+                
+                // 4. Salva l'oggetto completo (con tutti i giorni)
+                const response = await fetch(JSONBIN_URL, {
+                    method: 'PUT', // Sovrascrive il contenuto
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': MASTER_KEY 
+                    },
+                    body: JSON.stringify(allSchedules)
+                });
+                
+                if (response.ok) {
+                   showMessage(`Dati del ${date} salvati sul Cloud!`, 'success', 3000);
+                } else {
+                   const errorDetails = await response.text();
+                   showMessage(`ERRORE SALVATAGGIO CLOUD. (Stato: ${response.status}). Causa probabile: Master Key ERRATA o BIN NON PRIVATO.`, 'error');
+                   console.error("Errore risposta JSONBin:", response.status, errorDetails);
+                }
+                
+            } catch (error) {
+                showMessage("Errore grave nel salvataggio. Controlla la connessione o l'API Key.", 'error');
+                console.error("Errore fetch salvataggio:", error);
             }
         }
 
         /**
-         * Carica i dati (durata, ora inizio, pause) per la data selezionata.
+         * Carica i dati specifici della data selezionata da JSONBin.io e popola i campi.
          */
-        function loadSchedule() {
+        async function loadSchedule() {
             const date = document.getElementById('scheduleDate').value;
-            try {
-                const allData = JSON.parse(localStorage.getItem(APP_STORAGE_KEY) || '{}');
-                const data = allData[date];
+            if (!date) {
+                 showMessage("Seleziona una data da caricare.", 'error');
+                 return;
+            }
 
-                if (data) {
-                    document.getElementById('totalDuration').value = data.totalDuration || 180;
-                    document.getElementById('startTime').value = data.startTime || '07:00';
-                    breakList = data.breaks || [];
+            // Imposta i valori di default/vuoti
+            function loadDefaults() {
+                document.getElementById('totalDurationHours').value = 3;
+                document.getElementById('totalDurationMinutes').value = 0;
+                document.getElementById('startTime').value = '';
+                document.getElementById('endTime').value = '';
+                // Carica i default per i pasti fissi (o li resetta a quelli hardcoded)
+                 MEAL_NAMES.forEach(meal => {
+                    const startEl = document.getElementById(`${meal}Start`);
+                    const endEl = document.getElementById(`${meal}End`);
+                    if (startEl && startEl.defaultValue) startEl.value = startEl.defaultValue;
+                    if (endEl && endEl.defaultValue) endEl.value = endEl.defaultValue;
+                });
+                breakList = [];
+            }
+            
+            try {
+                if (MASTER_KEY === "INSERISCI_QUI_LA_NUOVA_MASTER_KEY") {
+                    showMessage("Modalità locale: Inserisci la tua Master Key nel codice per attivare il Cloud Sync.", 'warning', 4000);
+                    loadDefaults();
+                    renderBreaks();
+                    calculateSchedule();
+                    return; 
+                }
+                
+                // 1. Recupera tutti i salvataggi esistenti
+                const allSchedules = await fetchAllSchedules();
+                
+                // 2. Estrae i dati per la data selezionata
+                const data = allSchedules[date]; 
+
+                if (data && Object.keys(data).length > 0) {
+                    
+                    // Popola i campi con i dati trovati
+                    document.getElementById('totalDurationHours').value = data.totalDurationHours ?? 3;
+                    document.getElementById('totalDurationMinutes').value = data.totalDurationMinutes ?? 0;
+                    document.getElementById('startTime').value = data.startTime ?? '';
+                    document.getElementById('endTime').value = data.endTime ?? '';
+                    breakList = data.activeBreaks || [];
+                    
+                    // Carica i pasti fissi
+                    MEAL_NAMES.forEach(meal => {
+                        if (data.fixedBreaks && data.fixedBreaks[meal]) {
+                            document.getElementById(`${meal}Start`).value = data.fixedBreaks[meal].start;
+                            document.getElementById(`${meal}End`).value = data.fixedBreaks[meal].end;
+                        } else {
+                            // Se il pasto non è nei dati salvati, carica il suo default hardcoded.
+                             const startEl = document.getElementById(`${meal}Start`);
+                             const endEl = document.getElementById(`${meal}End`);
+                             if (startEl && startEl.defaultValue) startEl.value = startEl.defaultValue;
+                             if (endEl && endEl.defaultValue) endEl.value = endEl.defaultValue;
+                        }
+                    });
+                    
+                    showMessage(`Dati del ${date} caricati dal Cloud!`, 'info', 3000);
+                    
                 } else {
-                    // Se non ci sono dati, resetta l'elenco delle pause e usa i valori di default
-                    breakList = [];
-                    // Aggiorna i valori predefiniti solo se l'utente non li ha modificati (controlla se sono stringhe vuote)
-                    if (!document.getElementById('totalDuration').value || document.getElementById('totalDuration').value === "") document.getElementById('totalDuration').value = 180;
-                    if (!document.getElementById('startTime').value || document.getElementById('startTime').value === "") document.getElementById('startTime').value = '07:00';
+                    // Nessun dato trovato per quella data, carica i default
+                    loadDefaults();
+                    showMessage(`Nessun dato salvato sul Cloud per il ${date}. Caricamento default.`, 'warning', 3000);
                 }
                 
                 renderBreaks();
-                calculateSchedule(); // Ricalcola con i nuovi dati
+                calculateSchedule(); 
+                
             } catch (error) {
-                console.error("Errore nel caricamento dei dati:", error);
-                breakList = [];
+                showMessage("Errore nel caricamento Cloud. Controlla Master Key e BIN ID.", 'error', 7000);
+                console.error("Errore loadSchedule:", error);
+                loadDefaults();
                 renderBreaks();
+                calculateSchedule();
             }
         }
+        
+        // --- Gestione Interfaccia Pause Attive ---
 
-        // --- Gestione Interfaccia Pause ---
-
-        /**
-         * Aggiunge una nuova pausa all'elenco.
-         */
         function addBreak() {
             const descriptionInput = document.getElementById('breakDescription');
-            const durationInput = document.getElementById('breakDuration');
+            const durationHoursInput = document.getElementById('breakDurationHours');
+            const durationMinutesInput = document.getElementById('breakDurationMinutes');
+            const startTimeInput = document.getElementById('breakStartTime');
             
             const description = descriptionInput.value.trim() || 'Pausa Generica';
-            const duration = parseInt(durationInput.value, 10);
+            const breakStartTimeStr = startTimeInput.value;
+            
+            const hours = parseInt(durationHoursInput.value, 10) || 0;
+            const minutes = parseInt(durationMinutesInput.value, 10) || 0;
+            const totalDuration = (hours * 60) + minutes;
 
-            if (isNaN(duration) || duration < 5) {
-                // Sostituisco alert() con un messaggio nell'interfaccia
-                document.getElementById('results').innerHTML = '<p class="text-red-500 font-semibold">Attenzione: La durata della pausa deve essere di almeno 5 minuti.</p>';
+            if (totalDuration < 5) {
+                showMessage("La durata della pausa deve essere di almeno 5 minuti.", 'error');
+                return;
+            }
+            if (!breakStartTimeStr) {
+                showMessage("Inserisci l'ora di inizio della pausa (HH:MM).", 'error');
                 return;
             }
 
-            breakList.push({ description, duration });
-            descriptionInput.value = '';
-            durationInput.value = 60; // Reset della durata
+            breakList.push({ 
+                description: description, 
+                start: breakStartTimeStr, 
+                duration: totalDuration,
+                type: 'active'
+            });
             
-            // Salva e aggiorna l'interfaccia e il programma
-            saveSchedule(document.getElementById('scheduleDate').value);
+            // Ordina sempre dopo l'aggiunta
+            breakList.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+            descriptionInput.value = '';
+            durationHoursInput.value = 0;
+            durationMinutesInput.value = 30;
+            
+            saveSchedule(); // SALVATAGGIO CLOUD AUTOMATICO
             renderBreaks();
             calculateSchedule();
+            showMessage(`Pausa "${description}" aggiunta con successo.`, 'success');
         }
 
-        /**
-         * Rimuove una pausa in base all'indice.
-         * @param {number} index - Indice della pausa da rimuovere.
-         */
         function removeBreak(index) {
+            const removedDescription = breakList[index].description;
             breakList.splice(index, 1);
             
-            // Salva e aggiorna l'interfaccia e il programma
-            saveSchedule(document.getElementById('scheduleDate').value);
+            saveSchedule(); // SALVATAGGIO CLOUD AUTOMATICO
             renderBreaks();
             calculateSchedule();
+            showMessage(`Pausa "${removedDescription}" rimossa.`, 'success');
         }
 
-        /**
-         * Aggiorna la lista delle pause nell'interfaccia.
-         */
         function renderBreaks() {
             const container = document.getElementById('currentBreaks');
             let html = '';
             
             if (breakList.length === 0) {
-                 html = '<li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa aggiunta. L\'allenamento sarà un blocco unico.</li>';
+                 html = '<li id="noBreaksMessage" class="text-gray-400 italic">Nessuna pausa attiva aggiunta.</li>';
             } else {
                 breakList.forEach((b, index) => {
                     html += `
-                        <li class="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm border border-yellow-300">
-                            <span class="text-gray-800 font-medium">${b.description} (${formatMinutesToHours(b.duration)})</span>
+                        <li class="flex justify-between items-center p-3 rounded-lg shadow-sm border" style="background-color: white; border-color: var(--color-rose-antico);">
+                            <span class="font-medium" style="color: var(--color-text-dark);">
+                                ${b.start} - ${b.description} 
+                                <span class="text-sm text-gray-500">(${formatMinutesToHours(b.duration)})</span>
+                            </span>
                             <button onclick="removeBreak(${index})" class="text-red-500 hover:text-red-700 transition duration-150" aria-label="Rimuovi Pausa">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.728-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
@@ -257,105 +634,379 @@
             container.innerHTML = html;
         }
 
-        // --- Logica di Calcolo Principale ---
+        // --- Event Listeners ---
 
-        function calculateSchedule() {
-            const totalDuration = parseInt(document.getElementById('totalDuration').value, 10);
-            const startTimeStr = document.getElementById('startTime').value;
+        function attachEventListeners() {
+             const dateInput = document.getElementById('scheduleDate');
+             if (dateInput) {
+                // Quando la data cambia, ricarica i dati di QUEL giorno specifico
+                dateInput.addEventListener('change', loadSchedule); 
+             }
+
+             const inputsToWatch = ['totalDurationHours', 'totalDurationMinutes', 'startTime', 'endTime'];
+             MEAL_NAMES.forEach(meal => {
+                 inputsToWatch.push(`${meal}Start`);
+                 inputsToWatch.push(`${meal}End`); 
+             });
+
+             inputsToWatch.forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) {
+                     // Ricalcola e salva automaticamente dopo il cambio di un input
+                     element.addEventListener('change', () => {
+                         saveSchedule(); 
+                         calculateSchedule();
+                     });
+                 }
+             });
+             
+             const calcBtn = document.getElementById('calculateButton');
+             if (calcBtn) {
+                 calcBtn.addEventListener('click', calculateSchedule);
+             }
+        }
+        
+        // --- FUNZIONI DI STAMPA E CONDIVISIONE (lasciate invariate) ---
+
+        function printSchedule() {
             const resultsDiv = document.getElementById('results');
-            
-            // Gestione errori di input
-            if (isNaN(totalDuration) || totalDuration <= 0 || !startTimeStr) {
-                resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Per favore, inserisci una durata totale valida e un orario di inizio.</p>';
+            const scheduleTable = document.querySelector('#results .session-table');
+
+            if (!scheduleTable) {
+                showMessage("Prima devi calcolare il programma per poterlo stampare.", 'warning');
                 return;
             }
 
-            // Aggiorna e salva i dati correnti prima del calcolo
-            saveSchedule(document.getElementById('scheduleDate').value);
+            const originalBody = document.body.innerHTML;
+            const printContent = `<div class="print-container">
+                <style>
+                    body { 
+                        background: white !important; 
+                        margin: 0; 
+                        padding: 0;
+                        color: black !important;
+                        font-family: sans-serif;
+                    }
+                    h1 { color: #D8A7A7; text-align: center; font-size: 24px; margin-bottom: 20px; }
+                    
+                    .session-table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin-top: 15px; 
+                        font-size: 14px;
+                    }
+                    .session-table th, .session-table td { 
+                        border: 1px solid #888; 
+                        padding: 8px; 
+                        text-align: left; 
+                    }
+                    .session-table th { background-color: #EAC9C6 !important; color: #6F4E4E !important; }
+                    .session-table .meal { background-color: #E1F0E1 !important; } 
+                    .session-table .break { background-color: #FEEAEA !important; }
+                    .session-table .info { background-color: #f7f7f7 !important; }
+                    .bg-blue-100 { background-color: #FEEAEA !important; padding: 10px; border: 1px solid #ccc;} 
 
-            // 1. Parsing dell'orario di inizio
-            const [startHour, startMinute] = startTimeStr.split(':').map(Number);
-            let currentTimeMinutes = (startHour * 60) + startMinute;
+                </style>
+                <h1 style="color: var(--color-rose-accent); text-align: center; font-size: 24px; margin-bottom: 20px;">Pianificatore Sportivo Giornaliero</h1>
+                ${resultsDiv.innerHTML}
+            </div>`;
 
-            const numBreaks = breakList.length;
+            document.body.innerHTML = printContent;
             
-            // Il training è diviso in N+1 blocchi (dove N è il numero di pause)
-            const numBlocks = numBreaks + 1;
+            window.print();
             
-            // Calcola la durata di un singolo blocco di allenamento
-            const blockDuration = Math.floor(totalDuration / numBlocks);
-            const remainingDuration = totalDuration % numBlocks; // Gestisce i minuti residui
+            setTimeout(() => {
+                document.body.innerHTML = originalBody;
+                attachEventListeners(); 
+            }, 500);
+        }
+        
+        function shareOnWhatsApp() {
+            const date = document.getElementById('scheduleDate').value;
+            const scheduleTable = document.querySelector('#results .session-table');
 
-            let trainingBlocksDuration = Array(numBlocks).fill(blockDuration);
-            // Distribuisce i minuti residui sui primi blocchi
-            for (let i = 0; i < remainingDuration; i++) {
-                trainingBlocksDuration[i]++;
+            if (!scheduleTable) {
+                showMessage("Calcola il programma prima di condividerlo.", 'warning');
+                return;
+            }
+            
+            showMessage("✅ PER L'IMMAGINE: Fai uno screenshot di questa tabella e invialo dalla tua galleria! Ora avvio la condivisione del testo riassuntivo.", 'info', 7000); 
+
+            let summary = `*📅 Programma Sportivo del ${date} 📅*\n\n`;
+            
+            const summaryDiv = document.querySelector('#results > div:first-child');
+            if(summaryDiv) {
+                const summaryText = summaryDiv.innerText.replace(/(\n{2,})/g, '\n').replace('Pianificazione vincolata', 'Vincolo').trim();
+                summary += summaryText + '\n\n';
             }
 
-            const schedule = [];
-            let currentBreakIndex = 0;
-            let finalActivityEnd = '';
+            summary += `*🌟 Dettaglio Attività 🌟*\n`;
+            
+            const rows = scheduleTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length === 4) {
+                    let type = cells[0].innerText.trim();
+                    let start = cells[1].innerText.trim();
+                    let end = cells[2].innerText.trim();
+                    let duration = cells[3].innerText.trim();
+                    
+                    summary += `• ${start}-${end} | ${duration} | ${type}\n`;
+                }
+            });
+            
+            summary += `\n*✨ Creato con il Pianificatore Sportivo Kawaii ✨*`;
 
-            // 2. Ciclo di pianificazione
-            for (let i = 0; i < numBlocks; i++) {
-                const currentBlockDuration = trainingBlocksDuration[i];
-                
-                // Calcola l'orario di inizio e fine del blocco di allenamento
-                const blockStartMinutes = currentTimeMinutes;
-                const blockEndMinutes = blockStartMinutes + currentBlockDuration;
-
-                const startHourBlock = Math.floor(blockStartMinutes / 60) % 24;
-                const startMinuteBlock = blockStartMinutes % 60;
-                const endHourBlock = Math.floor(blockEndMinutes / 60) % 24;
-                const endMinuteBlock = blockEndMinutes % 60;
-
-                schedule.push({
-                    type: `Allenamento Blocco ${i + 1}`,
-                    start: formatTime(startHourBlock, startMinuteBlock),
-                    end: formatTime(endHourBlock, endMinuteBlock),
-                    duration: currentBlockDuration
-                });
-
-                // Aggiorna l'orario corrente e l'orario di fine attività stimato
-                currentTimeMinutes = blockEndMinutes;
-                finalActivityEnd = formatTime(endHourBlock, endMinuteBlock);
-
-                // Inserisce la pausa DOPO il blocco, se ce n'è una
-                if (currentBreakIndex < numBreaks) {
-                    const breakItem = breakList[currentBreakIndex];
-                    const breakDuration = breakItem.duration;
-
-                    const breakStartMinutes = currentTimeMinutes;
-                    const breakEndMinutes = breakStartMinutes + breakDuration;
-
-                    const startHourBreak = Math.floor(breakStartMinutes / 60) % 24;
-                    const startMinuteBreak = breakStartMinutes % 60;
-                    const endHourBreak = Math.floor(breakEndMinutes / 60) % 24;
-                    const endMinuteBreak = breakEndMinutes % 60;
-
-                    schedule.push({
-                        type: `Pausa: ${breakItem.description}`,
-                        start: formatTime(startHourBreak, startMinuteBreak),
-                        end: formatTime(endHourBreak, endMinuteBreak),
-                        duration: breakDuration
+            const encodedText = encodeURIComponent(summary);
+            
+            if (navigator.share) {
+                setTimeout(() => {
+                    navigator.share({
+                        title: `Programma Sportivo del ${date}`,
+                        text: summary
+                    }).catch((error) => {
+                        if (error.name !== 'AbortError') {
+                            window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+                        }
                     });
+                }, 500);
 
-                    // Aggiorna l'orario corrente e l'orario di fine attività stimato
-                    currentTimeMinutes = breakEndMinutes;
-                    finalActivityEnd = formatTime(endHourBreak, endMinuteBreak);
-                    currentBreakIndex++;
+            } else {
+                 setTimeout(() => {
+                    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+                 }, 500);
+            }
+        }
+
+        // --- Logica di Calcolo Principale (Lasciata invariata) ---
+
+        function calculateSchedule() {
+            // 1. Dati di input e calcolo durata totale
+            const totalDurationHours = parseInt(document.getElementById('totalDurationHours').value, 10) || 0;
+            const totalDurationMinutes = parseInt(document.getElementById('totalDurationMinutes').value, 10) || 0;
+            let totalTrainingDuration = (totalDurationHours * 60) + totalDurationMinutes;
+            const totalInitialDuration = totalTrainingDuration; 
+
+            const startTimeStr = document.getElementById('startTime').value.trim();
+            const endTimeStr = document.getElementById('endTime').value.trim();
+            const resultsDiv = document.getElementById('results');
+            const actionButtons = document.getElementById('action-buttons'); 
+            
+            if (totalTrainingDuration <= 0) {
+                 resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Per favore, inserisci una durata totale valida per l\'allenamento (maggiore di 0 minuti).</p>';
+                 if (actionButtons) actionButtons.classList.add('hidden'); 
+                return;
+            }
+
+            // 2. Unisce e Ordina TUTTE le pause (Fisse + Attive)
+            const allBreaks = [];
+
+            // A. Aggiunge le pause fisse (pasti)
+            MEAL_NAMES.forEach(meal => {
+                const start = document.getElementById(`${meal}Start`).value;
+                const end = document.getElementById(`${meal}End`).value;
+                
+                if (start && end) {
+                    let startMin = timeToMinutes(start);
+                    let endMin = timeToMinutes(end);
+
+                    if (endMin <= startMin) {
+                        endMin += (24 * 60); // Supporta pasti che attraversano la mezzanotte
+                    }
+
+                    const duration = endMin - startMin;
+                    
+                    if (duration > 0) {
+                         allBreaks.push({
+                            description: meal.charAt(0).toUpperCase() + meal.slice(1), 
+                            start: start,
+                            end: end, 
+                            duration: duration,
+                            startMinutes: startMin,
+                            endMinutes: endMin,
+                            type: 'fixed' 
+                        });
+                    }
+                }
+            });
+
+            // B. Aggiunge le pause attive
+            breakList.forEach(b => {
+                const startMin = timeToMinutes(b.start);
+                const endMin = startMin + b.duration;
+                
+                allBreaks.push({
+                    description: b.description, 
+                    start: b.start,
+                    end: minutesToTime(endMin),
+                    duration: b.duration,
+                    startMinutes: startMin,
+                    endMinutes: endMin,
+                    type: 'active'
+                });
+            });
+
+            // C. Ordina cronologicamente tutte le pause per orario di inizio
+            allBreaks.sort((a, b) => a.startMinutes - b.startMinutes);
+
+            // 3. Determina la modalità di pianificazione
+            let planningMode = 'free'; // Distribuzione libera
+            let startMinutes = 0;
+            let endMinutes = 24 * 60; // Fine a mezzanotte del giorno dopo
+            let planningConstraint = ''; // Messaggio per il riepilogo
+            
+            if (startTimeStr && endTimeStr) {
+                planningMode = 'fixed_window';
+                startMinutes = timeToMinutes(startTimeStr);
+                endMinutes = timeToMinutes(endTimeStr);
+                if (endMinutes <= startMinutes) {
+                    endMinutes += (24 * 60); // Attraversamento mezzanotte
+                }
+                
+                const windowDuration = endMinutes - startMinutes;
+                if (totalTrainingDuration > windowDuration) {
+                    showMessage(`Attenzione: La durata richiesta (${formatMinutesToHours(totalTrainingDuration)}) è maggiore della finestra temporale (${formatMinutesToHours(windowDuration)}). Verrà schedulato solo il tempo disponibile.`, 'warning');
+                    totalTrainingDuration = windowDuration; 
+                }
+                planningConstraint = `Pianificazione vincolata dalle ${startTimeStr} alle ${endTimeStr}.`;
+
+            } else if (startTimeStr || endTimeStr) {
+                 resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Per la pianificazione vincolata devi inserire SIA l\'Ora di Inizio che l\'Ora di Fine, oppure lasciare entrambi vuoti per la distribuzione libera.</p>';
+                 if (actionButtons) actionButtons.classList.add('hidden'); 
+                return;
+            } else {
+                planningConstraint = `Pianificazione libera: l\'allenamento inizierà dopo l'ultima pausa fissa/attiva più vicina al mattino.`;
+            }
+
+            // 4. Inizializzazione pianificazione
+            const schedule = [];
+            let currentTrainingStartMinutes = startMinutes;
+            
+            // 5. Ciclo principale
+
+            // Filtra le pause per includere solo quelle che rientrano nella finestra fissa (se definita)
+            const relevantBreaks = allBreaks.filter(b => b.startMinutes < endMinutes && b.endMinutes > startMinutes);
+
+            relevantBreaks.forEach((breakItem) => {
+                const breakStartMinutes = breakItem.startMinutes;
+                const breakEndMinutes = breakItem.endMinutes;
+
+                // Trova l'inizio effettivo della pausa all'interno del programma (dopo l'ultima attività)
+                const actualBreakStart = Math.max(breakStartMinutes, currentTrainingStartMinutes);
+                
+                // Se la pausa inizia dopo la fine della finestra fissa, interrompi
+                if (breakStartMinutes >= endMinutes) return;
+
+                // Calcola la durata del blocco di allenamento (spazio tra attività)
+                let trainingDurationSpace = actualBreakStart - currentTrainingStartMinutes;
+
+                // Inserisce il blocco di allenamento (se c'è spazio e c'è ancora tempo da schedulare)
+                if (trainingDurationSpace > 0 && totalTrainingDuration > 0) {
+                    // Durata massima che possiamo mettere in questo blocco
+                    let maxBlockDuration = trainingDurationSpace;
+                    
+                    if (planningMode === 'fixed_window') {
+                        // In modalità fissa, il blocco non può superare l'Ora di Fine generale
+                        maxBlockDuration = Math.min(trainingDurationSpace, endMinutes - currentTrainingStartMinutes);
+                    }
+                    
+                    let blockDuration = Math.min(totalTrainingDuration, maxBlockDuration);
+                    
+                    if (blockDuration > 0) {
+                        const blockEndMinutes = currentTrainingStartMinutes + blockDuration;
+                        schedule.push({
+                            type: `Allenamento Blocco ${schedule.filter(i => i.type.includes('Allenamento')).length + 1}`,
+                            start: minutesToTime(currentTrainingStartMinutes),
+                            end: minutesToTime(blockEndMinutes),
+                            duration: blockDuration,
+                            classType: ''
+                        });
+                        currentTrainingStartMinutes = blockEndMinutes; 
+                        totalTrainingDuration -= blockDuration;
+                    }
+                }
+                
+                // Inserisce la Pausa (solo se la pausa non è finita prima dell'inizio del blocco precedente)
+                if (currentTrainingStartMinutes < breakEndMinutes) {
+                    const classType = breakItem.type === 'fixed' ? 'meal' : 'break';
+                    
+                    // La pausa inizia dopo l'ultima attività schedulata, ma non oltre l'orario di fine della finestra fissa
+                    const actualBreakStartProgram = minutesToTime(currentTrainingStartMinutes);
+                    const actualBreakEndMinutes = Math.min(breakEndMinutes, endMinutes);
+                    const actualBreakDuration = actualBreakEndMinutes - currentTrainingStartMinutes;
+
+                    if (actualBreakDuration > 0) {
+                        schedule.push({
+                            type: breakItem.type === 'fixed' ? breakItem.description : `Pausa: ${breakItem.description}`,
+                            start: actualBreakStartProgram, 
+                            end: minutesToTime(actualBreakEndMinutes),
+                            duration: actualBreakDuration, 
+                            classType: classType 
+                        });
+                        currentTrainingStartMinutes = actualBreakEndMinutes;
+                    }
+                }
+            });
+
+            // 6. Blocco Finale di Allenamento (se c'è tempo rimanente)
+            if (totalTrainingDuration > 0 && currentTrainingStartMinutes < endMinutes) {
+                const remainingSpace = endMinutes - currentTrainingStartMinutes;
+                const finalBlockDuration = Math.min(totalTrainingDuration, remainingSpace);
+                
+                if (finalBlockDuration > 0) {
+                    const blockEndMinutes = currentTrainingStartMinutes + finalBlockDuration;
+                    
+                    schedule.push({
+                        type: `Allenamento Blocco ${schedule.filter(i => i.type.includes('Allenamento')).length + 1}`,
+                        start: minutesToTime(currentTrainingStartMinutes),
+                        end: minutesToTime(blockEndMinutes),
+                        duration: finalBlockDuration,
+                        classType: ''
+                    });
+                    currentTrainingStartMinutes = blockEndMinutes; 
+                    totalTrainingDuration -= finalBlockDuration;
+                }
+            }
+            
+            // 7. Blocco informativo di Tempo Libero (prima dell'inizio attività)
+             if(schedule.length > 0 && timeToMinutes(schedule[0].start) > 0) {
+                if (startMinutes > 0) {
+                     schedule.unshift({
+                        type: 'Tempo Libero (00:00 - Inizio Attività)',
+                        start: '00:00',
+                        end: minutesToTime(startMinutes % (24*60)),
+                        duration: startMinutes,
+                        classType: 'info'
+                    });
                 }
             }
 
-            // 3. Renderizzazione dell'output
+
+            // 8. Riassunto e Renderizzazione
+            const totalEffectiveTrainingMinutes = totalInitialDuration - totalTrainingDuration; 
+            
+            const finalActivityEnd = schedule.length > 0 ? schedule[schedule.length - 1].end : 'N/A';
+            
+            if (schedule.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Nessuna attività programmata. Controlla la durata dell\'allenamento e gli orari delle pause.</p>';
+                if (actionButtons) actionButtons.classList.add('hidden'); 
+                return;
+            }
+
             let htmlOutput = `
-                <div class="bg-blue-100 p-4 rounded-lg mb-4 shadow-md">
-                    <p class="text-lg font-bold text-blue-800">Durata Totale Allenamento: 🏋️ ${formatMinutesToHours(totalDuration)}</p>
-                    <p class="text-lg font-bold text-blue-800">Numero di Blocchi di Allenamento: 🧱 ${numBlocks}</p>
-                    <p class="text-lg font-bold text-red-500">Orario di Fine Attività Stimato: ⏰ **${finalActivityEnd}**</p>
+                <div class="p-4 rounded-lg mb-4 shadow-md" style="background-color: #FEEAEA; border: 1px solid var(--color-rose-antico);">
+                    <p class="text-lg font-bold" style="color: var(--color-text-dark);">Durata Totale Attività (richiesta): 🏋️ ${formatMinutesToHours(totalInitialDuration)}</p>
+                    <p class="text-sm italic text-gray-500 mb-2">${planningConstraint}</p>
+                    <p class="text-lg font-bold" style="color: var(--color-text-dark);">Durata Allenamento Effettiva: ⏱️ ${formatMinutesToHours(totalEffectiveTrainingMinutes)}</p>
+                    <p class="text-lg font-bold text-gray-700">
+                        Orario di Fine Programma (Ultima Attività): ⏰ **${finalActivityEnd}**
+                    </p>
+                    ${totalEffectiveTrainingMinutes < totalInitialDuration ? 
+                       `<p class="text-sm text-red-500 mt-2">Nota: Il tempo di allenamento è stato ridotto per rispettare le pause fisse/finestra temporale. Mancano ${formatMinutesToHours(totalInitialDuration - totalEffectiveTrainingMinutes)} di allenamento richiesto.</p>` : ''
+                    }
                 </div>
                 
-                <h3 class="text-2xl font-semibold mt-6 mb-4 text-gray-700">Organizzazione Giornaliera Dettagliata</h3>
+                <h3 class="text-2xl font-semibold mt-6 mb-4" style="color: var(--color-rose-accent);">Organizzazione Giornaliera Dettagliata</h3>
                 <table class="session-table shadow-lg rounded-lg overflow-hidden">
                     <thead>
                         <tr>
@@ -369,8 +1020,7 @@
             `;
 
             schedule.forEach(item => {
-                const isBreak = item.type.includes('Pausa');
-                const rowClass = isBreak ? 'break' : '';
+                const rowClass = item.classType || ''; 
                 
                 htmlOutput += `
                     <tr class="${rowClass}">
@@ -388,6 +1038,11 @@
             `;
 
             resultsDiv.innerHTML = htmlOutput;
+            
+            // 9. Mostra i pulsanti di azione
+            if (actionButtons) {
+                actionButtons.classList.remove('hidden');
+            }
         }
         
         // --- Inizializzazione ---
@@ -398,13 +1053,15 @@
              const dateInput = document.getElementById('scheduleDate');
              dateInput.value = today;
              
-             // Listener per il cambiamento della data (per caricare i dati specifici del giorno)
-             dateInput.addEventListener('change', loadSchedule);
-
-             // Listener per i cambiamenti negli input principali
-             document.getElementById('startTime').addEventListener('change', calculateSchedule);
-             document.getElementById('totalDuration').addEventListener('change', calculateSchedule);
+             // Nascondi i pulsanti all'inizio
+             const actionButtons = document.getElementById('action-buttons');
+             if (actionButtons) {
+                 actionButtons.classList.add('hidden'); 
+             }
              
+             // Ricollega tutti gli Event Listeners
+             attachEventListeners();
+
              // Carica i dati salvati per la data corrente (se esistono) e calcola
              loadSchedule();
         });
@@ -412,4 +1069,5 @@
     </script>
 </body>
 </html>
+
 
